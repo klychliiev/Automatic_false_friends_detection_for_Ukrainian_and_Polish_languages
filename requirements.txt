@@ -1,0 +1,8 @@
+beautifulsoup4==4.10.0
+matplotlib==3.7.1
+numpy==1.22.4
+pandas==1.5.3
+polyglot==16.7.4
+Requests==2.31.0
+scikit_learn==1.2.2
+seaborn==0.12.2
