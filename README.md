@@ -10,7 +10,7 @@ Files in this repository:
 * fast_vector.py - script for generation of multilingual vector space (single vector space for Ukrainian and Polish words in this case)
 * homographs_classification.ipynb - code for automatic classification of words based on their orthographic similarity. This script allows us to detect potential cognates and false friends while filtrating unrelated word pairs.
 * false_friends_detection.ipynb - code for automatic classification of false friends and cognates using word embeddings
-To process vectors of Ukrainian and Polish words one must create a new folder "wiki_vectors" and download there bin+text vectors for Ukrainian and Polish from this website: https://fasttext.cc/docs/en/pretrained-vectors.html. 
+* ! note. to process vectors of Ukrainian and Polish words one must create a new folder "wiki_vectors" and download there bin+text vectors for Ukrainian and Polish from this website: https://fasttext.cc/docs/en/pretrained-vectors.html. 
 
 ## Program execution
 To execute the program one should run two notebooks in the following order:
