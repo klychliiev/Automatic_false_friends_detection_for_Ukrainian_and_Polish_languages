@@ -1,6 +1,7 @@
 # Automatic_false_friends_detection_for_Ukrainian_and_Polish_languages
 
 Course project aimed at automatic detection of false friends between Ukrainian and Polish languages using orthographic and semantic features of word pairs
+
 Files in this repository:
 * requirements.txt - libraries required for installation to run this project
 * alignment matrices - folder containing alignment matrices for Ukrainian and Polish languages. These matrices allow us to place vectors of Ukrainian and Polish words in a single vector space
