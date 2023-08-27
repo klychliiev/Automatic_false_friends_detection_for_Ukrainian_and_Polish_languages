@@ -18,4 +18,4 @@ To execute the program one should run two notebooks in the following order:
 2. false_friends_detection.ipynb
 
 ## Accuracy
-The first classifier (homographs classification) showed an overall accuracy of 92%, the second one (false friends and cognates classification) showed an overall accuracy of 82%. Overall accuracy of the model is 87%.
+The first classifier (homographs classification) showed an overall accuracy of 92%, the second one (false friends and cognates classification) showed an overall accuracy of 82%. Overall accuracy of the model is the mean of the accuracies of the separate classifiers, which is 87%.
