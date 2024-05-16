@@ -6,4 +6,8 @@ polyglot==16.7.4
 Requests==2.31.0
 scikit_learn==1.2.2
 seaborn==0.12.2
-fasttext==0.8.2
+# fasttext==0.8.2
+spacy
+openai
+streamlit
+python-dotenv

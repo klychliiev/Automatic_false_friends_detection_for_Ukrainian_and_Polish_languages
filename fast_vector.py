@@ -143,6 +143,18 @@ class FastVector:
         return np.dot(vec_a, vec_b) / \
             (np.linalg.norm(vec_a) * np.linalg.norm(vec_b))
 
+    @classmethod
+    def jaccard_similarity(cls, vec_a, vec_b):
+        """Compute Jaccard similarity between vec_a and vec_b"""
+        intersection = np.sum(np.minimum(vec_a, vec_b))
+        union = np.sum(np.maximum(vec_a, vec_b))
+        return intersection / union
+
+    @classmethod
+    def manhattan_distance(cls, vec_a, vec_b):
+        """Compute Manhattan distance between vec_a and vec_b"""
+        return np.sum(np.abs(vec_a - vec_b))
+    
     def __contains__(self, key):
         return key in self.word2id
 

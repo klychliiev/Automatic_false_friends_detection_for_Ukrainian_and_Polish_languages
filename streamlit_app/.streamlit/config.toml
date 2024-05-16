@@ -1,0 +1,8 @@
+server.maxUploadSize = 10
+
+[theme]
+primaryColor = "#233b6e"  # Dark blue color for primary elements like buttons
+backgroundColor = "#eff0f4"  # Very light blue background
+secondaryBackgroundColor = "#d3d6db"  # Light grey background for secondary elements
+textColor = "#000000"  # Black text for better readability
+font = "serif"
