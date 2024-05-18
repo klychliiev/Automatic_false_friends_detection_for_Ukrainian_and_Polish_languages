@@ -1,7 +1,9 @@
 import streamlit as st 
-from openai import AuthenticationError
+from openai import AuthenticationError, APIConnectionError
 from file_manager import FileManager
 from settings_config import * 
+
+import json 
 
 st.set_page_config(
     layout="centered", 
@@ -37,35 +39,54 @@ def create(uk, pl):
 
     uk_lemmas, pl_lemmas = file_manager.process_text(uk_text, pl_text)
 
-    word_pairs = file_manager.create_candidate_pairs(uk_lemmas, pl_lemmas)
+    word_pairs, cont = file_manager.create_candidate_pairs(uk_lemmas, pl_lemmas)
 
-    result = file_manager.find_false_friends(word_pairs)
+    result = file_manager.find_false_friends(word_pairs, cont)
 
     return result
 
 with main_tab: 
     st.header("Класифікатор хибних друзів перекладача та когнатів")
 
+    st.markdown("Завантажте два текстові файли, один українською мовою, інший - польською.")
     
     uk = st.file_uploader(
-        "Ukr \U0001F1FA\U0001F1E6",
+        "ukr",
         type="txt",
+        accept_multiple_files=True,
+        label_visibility="collapsed"
 
     )
 
-    pl = st.file_uploader(
-        "Pl \U0001F1F5\U0001F1F1",
-        type="txt"
-    )
+    st.write()
+
+    print(len(uk))
+
+    if len(uk) > 2: 
+        st.warning("Будь ласка, виберіть лише два тексти.")
+
+    # pl = st.file_uploader(
+    #     "Pl \U0001F1F5\U0001F1F1",
+    #     type="txt"
+    # )
+
 
     submit_button = st.button("Ок")
 
     if submit_button:
         try:
-            result = create(uk, pl)
-            
-            st.markdown(f"```json\n{result}```")
-        except (AuthenticationError, UnicodeEncodeError):
+            if len(uk) == 2:
+                result = create(uk[0], uk[1])
+                st.json(result)
+                # Convert result to JSON string and create a download button
+                result_json = json.dumps(result, ensure_ascii=False, indent=4)
+                st.download_button(
+                    label="Download JSON",
+                    data=result_json,
+                    file_name="result.json",
+                    mime="application/json"
+                )
+        except (AuthenticationError, UnicodeEncodeError, APIConnectionError):
             st.warning("Невірний API ключ.")     
 
     # print(type(uk))
