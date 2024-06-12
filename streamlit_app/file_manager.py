@@ -2,6 +2,7 @@ from math import floor
 import spacy
 from polyglot.text import Text
 from openai import OpenAI
+from anthropic import AnthropicBedrock
 from wiktionaryparser import WiktionaryParser
 import json
 
@@ -84,6 +85,7 @@ class FileManager:
                         pl_lemmas[lemma] = []
                     pl_lemmas[lemma].append(sent.text)
 
+        print(uk_lemmas)
         return uk_lemmas, pl_lemmas 
 
     def create_candidate_pairs(self, uk_lemmas, pl_lemmas):
@@ -98,13 +100,85 @@ class FileManager:
                     similar_pairs.append((uk_trans[u_word], pl_trans[p_word]))
                     contexts.append((uk_trans[u_word], pl_trans[p_word], uk_lemmas[uk_trans[u_word]], pl_lemmas[pl_trans[p_word]]))
 
+        print(similar_pairs)
+        print(contexts)
         return similar_pairs, contexts
 
-    def fetch_definition(self, word, language):
-        result = self.wiktionary_parser.fetch(word, language)
-        if result and 'definitions' in result[0] and result[0]['definitions']:
-            return result[0]['definitions'][0]
-        return {}
+    # def fetch_definition(self, word, language):
+    #     # try:
+    #     #     result = self.wiktionary_parser.fetch(word, language)
+    #     #     if result and 'definitions' in result[0] and result[0]['definitions']:
+    #     #         return result[0]['definitions'][0]
+    #     #     return {}
+    #     # except:
+    #     #     result = 'None'
+    #     #     return result
+    #     result = self.wiktionary_parser.fetch(word, language)
+    #     print(result)
+    #     print()
+    #     if result:  
+    #         if 'definitions' in result[0] and result[0]['definitions']:
+    #             return result[0]['definitions'][0]
+    #         return {}
+
+    def find_false_friends_claude(self, pairs, contexts): 
+
+        template = """Task: Determine if the following pairs of Ukrainian and Polish words are false friends (different meanings) or cognates (similar meanings) and explain why.
+
+        Example:
+        {
+        "word_pairs": [
+            {
+            "pair": {
+                "рак":{}, 
+                "rak":{}      
+            },
+            "false_friends": "False",
+            "explanation":"These words are cognates because ..."
+            },
+            {
+            "pair": {
+                "магазин":{}, 
+                "magazyn":{}      
+            },
+            "false_friends": "True",
+            "explanation":"These words are false friends because ..."
+            }
+        ]
+        }
+
+        Return the valid JSON as above for the following Ukrainian-Polish word pairs: """ 
+
+        template += str(pairs)
+
+        client = AnthropicBedrock()
+
+        message = client.messages.create(
+            max_tokens=4096,
+            messages=[
+            {
+                "role":"user",
+                "content":template,
+            }],
+            model="anthropic.claude-3-sonnet-20240229-v1:0",
+        )
+
+        print(f"NEW RES: {message}")
+        print()
+        print(message.to_json())
+        
+        # for pair in result_json['word_pairs']:
+        #     uk_word = list(pair['pair'].keys())[0]
+        #     pl_word = list(pair['pair'].keys())[1]
+        #     for context in contexts:
+        #         if context[0] == uk_word and context[1] == pl_word:
+        #             pair['pair'][uk_word]['sentence'] = context[2]
+        #             pair['pair'][pl_word]['sentence'] = context[3]
+        #             # pair['pair'][uk_word]['definition'] = self.fetch_definition(uk_word, 'ukrainian')
+        #             # pair['pair'][pl_word]['definition'] = self.fetch_definition(pl_word, 'polish')
+        #             break
+
+        # return result_json
 
     def find_false_friends(self, pairs, contexts):
 
@@ -157,18 +231,8 @@ class FileManager:
                 if context[0] == uk_word and context[1] == pl_word:
                     pair['pair'][uk_word]['sentence'] = context[2]
                     pair['pair'][pl_word]['sentence'] = context[3]
-                    pair['pair'][uk_word]['definition'] = self.fetch_definition(uk_word, 'ukrainian')
-                    pair['pair'][pl_word]['definition'] = self.fetch_definition(pl_word, 'polish')
+                    # pair['pair'][uk_word]['definition'] = self.fetch_definition(uk_word, 'ukrainian')
+                    # pair['pair'][pl_word]['definition'] = self.fetch_definition(pl_word, 'polish')
                     break
 
         return result_json
-
-# Example usage:
-# api_key = "your_openai_api_key"
-# fm = FileManager(api_key)
-# ukr_text = "your_ukrainian_text"
-# pl_text = "your_polish_text"
-# uk_lemmas, pl_lemmas = fm.process_text(ukr_text, pl_text)
-# pairs, contexts = fm.create_candidate_pairs(uk_lemmas, pl_lemmas)
-# result = fm.find_false_friends(pairs, contexts)
-# print(result)

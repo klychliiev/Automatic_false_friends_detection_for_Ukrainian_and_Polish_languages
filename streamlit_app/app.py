@@ -1,21 +1,20 @@
 import streamlit as st 
-from openai import AuthenticationError, APIConnectionError
+from openai import APIConnectionError, AuthenticationError
 from file_manager import FileManager
 from settings_config import * 
-
 import json 
 
 st.set_page_config(
-    layout="centered", 
+    layout="wide", 
     page_title="Класифікатор хибних друзів перекладача та когнатів",
-    page_icon="ji-\U0001F5E3"
+    page_icon="📢"
 )
 
 with st.sidebar:
-    st.header("Налаштування")
-    model = st.sidebar.selectbox(
+    st.subheader("Налаштування мовних моделей")
+    model = st.selectbox(
         "Оберіть мовну модель для класифікації: ",
-        ("GPT-4", "Claude 3 Opus", "Llama 3", "Mistral")
+        ("GPT", "Claude")
     )
     key = st.text_input(
         f"Введіть ваш ключ для моделі {model}:",
@@ -27,9 +26,13 @@ with st.sidebar:
     key_submit = st.button("Підтвердити")
 
     if key_submit and not key:
-        st.warning("Будь ласка, ведіть ключ.")
+        st.warning("Будь ласка, введіть ключ.")
 
-    print(model)
+    st.subheader("Налаштування виводу програми")
+
+    # checkbox_wiki = st.checkbox("Додати лінгвістичні дані Wiktionary")
+    checkbox_cognates = st.checkbox("Включати когнати")
+    checkbox_json = st.checkbox("Включити генерацію JSON")
 
 main_tab, info_tab = st.tabs(["Класифікатор", "Додатково"])
 
@@ -41,63 +44,65 @@ def create(uk, pl):
 
     word_pairs, cont = file_manager.create_candidate_pairs(uk_lemmas, pl_lemmas)
 
-    result = file_manager.find_false_friends(word_pairs, cont)
+    if model=="GPT":
+        result = file_manager.find_false_friends(word_pairs, cont)
+    else: 
+        result = file_manager.find_false_friends_claude(word_pairs, cont)
 
     return result
 
 with main_tab: 
     st.header("Класифікатор хибних друзів перекладача та когнатів")
+    st.subheader("Знайди хибні друзі перекладача у власних текстах")
 
-    st.markdown("Завантажте два текстові файли, один українською мовою, інший - польською.")
-    
-    uk = st.file_uploader(
-        "ukr",
-        type="txt",
-        accept_multiple_files=True,
-        label_visibility="collapsed"
-
-    )
-
-    st.write()
-
-    print(len(uk))
-
-    if len(uk) > 2: 
-        st.warning("Будь ласка, виберіть лише два тексти.")
-
-    # pl = st.file_uploader(
-    #     "Pl \U0001F1F5\U0001F1F1",
-    #     type="txt"
-    # )
-
+    with st.expander("Інструкція"):
+        ### Інструкція:
+        st.markdown("""
+        ### Інструкція:
+        1. **Оберіть мовну модель** для виявлення хибних друзів перекладача.
+        2. **Введіть API ключ** для відповідної мовної моделі та натисніть кнопку "Підтвердити".
+        3. Оберіть за необхідності **додаткові параметри** виводу програми.
+        4. **Завантажте тексти** - українською та польською мовами, натисніть кнопку "Ок".
+        5. Зачекайте 5-15 секунд допоки згенерується відповідь.
+            """)
+    st.markdown("Завантажте два файли, один з українськомовним текстом, інший - польськомовним.")
+    uk = st.file_uploader("ukr", type="txt", accept_multiple_files=True, label_visibility="collapsed")
 
     submit_button = st.button("Ок")
 
-    if submit_button:
+    if submit_button and len(uk) == 2:
         try:
-            if len(uk) == 2:
-                result = create(uk[0], uk[1])
-                st.json(result)
-                # Convert result to JSON string and create a download button
-                result_json = json.dumps(result, ensure_ascii=False, indent=4)
+            result = create(uk[0], uk[1])
+            filtered_result = result
+            
+            if not checkbox_cognates:
+                filtered_result['word_pairs'] = [pair for pair in result['word_pairs'] if pair['false_friends'] == 'True']
+
+            if checkbox_json:
+                st.json(filtered_result)
+                result_json = json.dumps(filtered_result, ensure_ascii=False, indent=4)
                 st.download_button(
-                    label="Download JSON",
+                    label="Завантажити",
                     data=result_json,
                     file_name="result.json",
                     mime="application/json"
                 )
-        except (AuthenticationError, UnicodeEncodeError, APIConnectionError):
-            st.warning("Невірний API ключ.")     
-
-    # print(type(uk))
-    # print(uk)
-
-    # try:
-    #     print(uk.read().decode('utf-8'))
-    # except AttributeError:
-    #     print()
-
+            else:
+                # Parsing result and displaying it in a readable format
+                st.markdown("---")  # Add a divider
+                for item in filtered_result['word_pairs']:
+                    pair = item['pair']
+                    for word in pair:
+                        st.markdown(f"**{word.capitalize()}**: {pair[word]['sentence'][0]}")
+                        
+                    if checkbox_cognates:
+                        st.markdown(f"**Хибні друзі**: {'так' if item['false_friends'] == 'True' else 'ні'}")
+                    # st.markdown(f"**Explanation**: {item['explanation']}")
+                    st.markdown("---")  # Add a divider
+                    
+        except (AuthenticationError, UnicodeEncodeError, APIConnectionError) as e:
+            st.error(f"Сталася помилка: {str(e)}")
 
 with info_tab: 
     st.header("Інформація про хибні друзі перекладача")
-
+    st.markdown("**Когнати** – лексеми, що мають схоже написання та значення у двох чи більше мовах і при цьому мають спільне походження.")
