@@ -11,10 +11,8 @@ class FileManager:
     def __init__(self, api_key: str):
         self.uk_nlp = spacy.load('uk_core_news_sm')
         self.pl_nlp = spacy.load('pl_core_news_sm')
-        self.client = OpenAI(
-            api_key=api_key
-        )
         self.wiktionary_parser = WiktionaryParser()
+        self.key = api_key
 
     def jaro_distance(self, s1, s2):
         
@@ -210,7 +208,9 @@ class FileManager:
 
         template += str(pairs)
 
-        response = self.client.chat.completions.create(
+        client = OpenAI(api_key=self.key)
+
+        response = client.chat.completions.create(
             model="gpt-4-turbo-preview",
             response_format={"type":"json_object"},
             messages = [

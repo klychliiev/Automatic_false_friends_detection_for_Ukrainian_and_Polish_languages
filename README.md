@@ -19,3 +19,11 @@ To execute the program one should run two notebooks in the following order:
 
 ## Accuracy
 The first classifier (homographs classification) showed an overall accuracy of 92%, the second one (false friends and cognates classification) showed an overall accuracy of 82%. Overall accuracy of the model is the mean of the accuracies of the separate classifiers, which is 87%.
+
+```bash 
+$ python3 -m venv false-friends 
+
+$ source false-friends/bin/activate
+
+$ streamlit run streamlit_app/app.py 
+```

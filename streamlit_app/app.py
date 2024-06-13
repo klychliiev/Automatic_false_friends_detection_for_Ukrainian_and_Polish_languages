@@ -71,7 +71,7 @@ with main_tab:
     submit_button = st.button("Ок")
 
     if submit_button and len(uk) == 2:
-        try:
+        # try:
             result = create(uk[0], uk[1])
             filtered_result = result
             
@@ -100,8 +100,8 @@ with main_tab:
                     # st.markdown(f"**Explanation**: {item['explanation']}")
                     st.markdown("---")  # Add a divider
                     
-        except (AuthenticationError, UnicodeEncodeError, APIConnectionError) as e:
-            st.error(f"Сталася помилка: {str(e)}")
+        # except (AuthenticationError, UnicodeEncodeError, APIConnectionError) as e:
+        #     st.error(f"Сталася помилка: {str(e)}")
 
 with info_tab: 
     st.header("Інформація про хибні друзі перекладача")
